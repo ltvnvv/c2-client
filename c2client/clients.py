@@ -4,11 +4,12 @@ import re
 import ssl
 from abc import abstractmethod
 from functools import wraps
-from typing import Dict
+from typing import Any, Dict, Optional
 
 import boto3
 import inflection
 
+from c2client.errors import InvalidMethodName
 from c2client.utils import from_dot_notation, get_env_var, convert_args
 
 
@@ -101,9 +102,12 @@ class C2Client(BaseClient):
         )
 
     @classmethod
-    def make_request(cls, method: str, arguments: dict, verify: bool):
+    def make_request(cls, method: str, arguments: Optional[Dict], verify: bool) -> str:
 
         client = cls.get_client(verify)
+
+        if not hasattr(client, inflection.underscore(method)):
+            raise InvalidMethodName(method)
 
         if arguments:
             arguments = cls.convert_fields_names(arguments)
@@ -118,7 +122,7 @@ class C2Client(BaseClient):
         return json.dumps(result, indent=4, default=str)
 
     @staticmethod
-    def convert_fields_names(arguments: dict):
+    def convert_fields_names(arguments: dict) -> Dict[str, Any]:
         """Convert field names as in the documentation."""
 
         return arguments
@@ -130,7 +134,7 @@ class EC2Client(C2Client):
     client_name = "ec2"
 
     @staticmethod
-    def convert_fields_names(arguments: dict):
+    def convert_fields_names(arguments: dict) -> Dict[str, Any]:
         """Convert field names as in the documentation."""
 
         tag_pattern = r"Filter\.\d+\.Value"
@@ -160,7 +164,7 @@ class CWClient(C2Client):
     client_name = "cloudwatch"
 
     @staticmethod
-    def convert_fields_names(arguments: dict):
+    def convert_fields_names(arguments: dict) -> Dict[str, Any]:
         """Convert field names as in the documentation."""
 
         new_arguments = {}

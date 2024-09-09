@@ -15,3 +15,8 @@ class MalformedParametersError(Exception):
 class InvalidParameterName(Exception):
     def __init__(self, parameter_name: str) -> None:
         super().__init__(f"Parameter with named '{parameter_name}' was not found!")
+
+
+class InvalidMethodName(Exception):
+    def __init__(self, method_name: str) -> None:
+        super().__init__(f"Not found method by name: {method_name}")
